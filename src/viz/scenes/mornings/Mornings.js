@@ -35,8 +35,6 @@ export class Mornings extends SceneManager {
             blueGrey: new THREE.Color(0xB0B1B6)
         };
 
-        // after rendering these once, turn off auto-updates to optimize further renders
-        this.staticObjects = [];
         this.renderList = [
             'house', 'plant', 'table', 'bookshelf', 'flower'
             // 'table'
@@ -59,7 +57,7 @@ export class Mornings extends SceneManager {
         ]).then(() => {
             this.applySceneSettings();
             this.render(this.renderList); // render once to get objects in place
-            this.staticObjects.forEach(mesh => mesh.matrixAutoUpdate = false); // freeze static objects
+            this.freezeAll(this.scene, ['steam']); // freeze static objects
             super.animate();
         }).catch((err) => {
             console.log(err);
@@ -117,31 +115,31 @@ export class Mornings extends SceneManager {
         const OPP_RATIO = -1 * Math.sin(TILT);
 
         const lights = {
-            ambient: new THREE.AmbientLight(0xffffff, .35),
+            ambient: new THREE.AmbientLight(0xffffff, .25),
             sunlight: new THREE.DirectionalLight(0xffffff, 0),
             pointOne: new THREE.PointLight(0xffffff, .1)
         }
 
-        const sunX = 20;
-        const sunZ = -100
-        const sunY = sunZ * OPP_RATIO;
+        // const sunX = 20;
+        // const sunZ = -100
+        // const sunY = sunZ * OPP_RATIO;
 
-        lights.sunlight.position.copy(new THREE.Vector3(sunX, sunY, sunZ));
-        lights.sunlight.target.position.copy(new THREE.Vector3(sunX, 0, 0));
-        lights.sunlight.castShadow = true;
-        lights.sunlight.shadow.bias = 0.0001;
-        lights.sunlight.shadow.mapSize.height = MAPSIZE;
-        lights.sunlight.shadow.mapSize.width = MAPSIZE;
-        lights.sunlight.shadow.camera.top = CAMERASIZE;
-        lights.sunlight.shadow.camera.bottom = -1 * CAMERASIZE;
-        lights.sunlight.shadow.camera.left = -1 * CAMERASIZE;
-        lights.sunlight.shadow.camera.right = CAMERASIZE;
+        // lights.sunlight.position.copy(new THREE.Vector3(sunX, sunY, sunZ));
+        // lights.sunlight.target.position.copy(new THREE.Vector3(sunX, 0, 0));
+        // lights.sunlight.castShadow = true;
+        // lights.sunlight.shadow.bias = 0.0001;
+        // lights.sunlight.shadow.mapSize.height = MAPSIZE;
+        // lights.sunlight.shadow.mapSize.width = MAPSIZE;
+        // lights.sunlight.shadow.camera.top = CAMERASIZE;
+        // lights.sunlight.shadow.camera.bottom = -1 * CAMERASIZE;
+        // lights.sunlight.shadow.camera.left = -1 * CAMERASIZE;
+        // lights.sunlight.shadow.camera.right = CAMERASIZE;
 
         lights.pointOne.position.set(-36.792147432025736, 12.295984744079584, 19.50565058881036);
-        lights.pointOne.castShadow = true;
-        lights.pointOne.shadow.bias = 0.0001;
-        lights.pointOne.shadow.mapSize.height = MAPSIZE;
-        lights.pointOne.shadow.mapSize.Width = MAPSIZE;
+        // lights.pointOne.castShadow = true;
+        // lights.pointOne.shadow.bias = 0.0001;
+        // lights.pointOne.shadow.mapSize.height = MAPSIZE;
+        // lights.pointOne.shadow.mapSize.Width = MAPSIZE;
 
         this.scene.add(lights.ambient);
         this.scene.add(lights.sunlight);
@@ -177,9 +175,6 @@ export class Mornings extends SceneManager {
 
                         gltf.scene.children.forEach((mesh) => {
 
-                            // every mesh is static
-                            this.staticObjects.push(mesh);
-
                             if (mesh.name === 'god_rays_top' || mesh.name === 'god_rays_bottom') {
                                 mesh.material = this.subjects.godrays.materials[0];
                                 this.subjects.godrays.meshes.push(mesh);
@@ -209,12 +204,7 @@ export class Mornings extends SceneManager {
 
                     this.helpers.gltfLoader.load(paintingsModel, (gltf) => {
 
-                        console.log(gltf);
-
                         gltf.scene.children.forEach((mesh) => {
-
-                            // every mesh is static
-                            this.staticObjects.push(mesh);
 
                             mesh.name === 'vonnegut_self_portrait' && (mesh.material.side = THREE.FrontSide);
                             mesh.name === 'van_gogh' && (mesh.material.side = THREE.BackSide);
@@ -279,17 +269,10 @@ export class Mornings extends SceneManager {
                                     transparent: true,
                                     side: THREE.DoubleSide,
                                     opacity: .025
-                                })
+                                });
+
                                 this.subjects.steam = mesh;
-                            } else {
-                                // every mesh is static except steam
-                                this.staticObjects.push(mesh);
-                            }
 
-                            mesh.castShadow = true;
-
-                            if (mesh.name === 'table') {
-                                mesh.receiveShadow = true;
                             }
 
                         });
@@ -313,9 +296,6 @@ export class Mornings extends SceneManager {
                     this.helpers.gltfLoader.load(flowerModel, (gltf) => {
 
                         gltf.scene.children.forEach((mesh) => {
-
-                            // every mesh is static
-                            this.staticObjects.push(mesh);
 
                             if (mesh.name.includes('stick_leaves_one')) {
                                 mesh.material = new THREE.MeshLambertMaterial({
@@ -363,7 +343,6 @@ export class Mornings extends SceneManager {
                                     emissiveIntensity: 0
                                 })
                                 leaves.push(mesh);
-                                this.staticObjects.push(mesh);
                             });
 
                         this.subjects.spiralPlantLeaves = leaves;
@@ -388,9 +367,6 @@ export class Mornings extends SceneManager {
                         const pageMat = new THREE.MeshLambertMaterial({ color: 0xE7DACA, side: THREE.DoubleSide });
 
                         gltf.scene.children.forEach((mesh) => {
-
-                            // every mesh is static
-                            this.staticObjects.push(mesh);
 
                             if (mesh.name.includes('book') && !mesh.name.includes('bookcase') && mesh.type === 'Group') {
 
